@@ -1,12 +1,13 @@
 define(
-    ["require", "dojo/hash", "dojo/router", "app/home_page", "app/user_page"], 
-    function(require, hash, router, home_page, user_page) {
-        require(["dojo/domReady!"], function(){
-            router.register("/", home_page);
-            router.register("/:user", user_page);
-            
-            router.startup();
+    ["require", "dojo/hash", "dojo/router", "app/views"], 
+    function(require, hash, router, views) {
 
+        router.register("/", views.home);
+        router.register("/:user", views.user);
+    
+        require(["dojo/domReady!"], function(){    
+            router.startup();
+            
             if (hash() == "") 
                 router.go("/");
         });

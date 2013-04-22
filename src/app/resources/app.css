@@ -8,6 +8,10 @@ html, body {
     overflow:hidden;
 }
 
+body {
+    padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+
 #storage_picker_dialog {
 	width: 600px;
 	height: 400px;
@@ -39,3 +43,35 @@ pre {
 #inp:focus {
     outline: none;
 }
+
+
+#topsearch { margin-bottom: 0px;}
+#topsearch > input { margin-top: 4px;}
+
+body {
+    background-color: #1CABb8;
+}
+
+#sidebar
+{
+    background-color: #74c4cd;
+    margin-top: -17px;
+    padding: 5px;
+    height: 100px;
+    height: 1000px;
+}
+
+#main
+{
+    background-color: #74c4cd;
+    margin-top: -17px;
+    margin-left: 0px;
+    padding: 5px;
+    height: 1000px;
+}
+
+.nav > li {
+    margin-top: 4px;
+}
+
+.brand { margin-left: 5px; }
