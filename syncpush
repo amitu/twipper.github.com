@@ -9,7 +9,10 @@ fi
 
 git checkout gh-pages
 
-cp -r dist/* .
+cp dist/index.html index.html
+cp dist/dojo/dojo.js dojo/dojo.js
+cp dist/app/resources/app.css app/resources/app.css
+cp -r dist/bootstrap .
 
 if ! git diff-index --quiet HEAD --; then
     git commit -am "synced gh-pages from latest build on master"
