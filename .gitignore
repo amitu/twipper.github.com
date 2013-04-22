@@ -1,0 +1,14 @@
+ikog.py
+ikog.py.bak
+ikog.t
+ikog
+ikog.bak
+dojo-boilerplate/
+*.sw[po]
+.DS_Store
+*~
+dist
+src/dojo
+src/dijit
+src/util
+src/dojox
