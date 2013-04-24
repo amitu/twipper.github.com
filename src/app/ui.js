@@ -1,9 +1,9 @@
 define(
     [
         "dojo/query", "dojo/on", "dojo/_base/event", "dojo/router", 
-        "dijit/registry", "dojo/NodeList-manipulate"
+        "dijit/registry", "dojo/dom", "dojo/NodeList-manipulate"
     ], 
-    function(query, on, event, router, registry){
+    function(query, on, event, router, registry, dom){
         var ui = {
             set_title: function(title) {
                 document.title = title;
@@ -15,6 +15,9 @@ define(
             show_normal_header: function() {
                 console.log("show_normal_header");
                 query(".nonanon").style("display", "block");
+                dom.byId("me").href = "#/" + Parse.User.current().get(
+                    "username"
+                );
             },
             show_main_body: function() {
                 ui.show_normal_header();
@@ -23,7 +26,7 @@ define(
                 query("#index").style("display", "none");            
             },
             get_main: function() {
-                return query("#main");
+                return dom.byId("main");
             },
             set_main_content: function(html) {
                 query("#main").style("display", "block").empty().innerHTML(html);

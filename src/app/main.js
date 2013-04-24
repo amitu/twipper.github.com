@@ -7,7 +7,6 @@ define(
 
         router.register("/", views.home);
         router.register("/logout", views.logout);
-        router.register("/me", views.me);
         router.register("/connect", views.connect);
         router.register("/tweep", views.tweep);
         router.register("/:user", views.user);
