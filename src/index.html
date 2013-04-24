@@ -25,6 +25,7 @@
                                     >
                                 </form>
                             </li>
+                            <li><a href="#/tweep" class="nonanon">Tweep</a></li>
                             <li><a href="#/logout" class="nonanon">Logout</a></li>
                         </ul>
                     </div><!--/.nav-collapse -->
@@ -81,47 +82,6 @@
                                 <button type="submit" class="btn">Sign Up</button>
                             </div>
                         </div>
-                        <script type="dojo/on" data-dojo-event="submit">
-                            require(
-                                ["dojo/router", "dojo/query"], 
-                                function(router, query) {
-                                    query("#superror").text("");
-                                    var show_error = function(msg) {
-                                        query("#superror").text(msg);
-                                    }
-                                    var username = query("#supuser").val();
-                                    var email = query("#supemail").val();
-                                    var password = query("#suppass").val();
-                                    var password2 = query("#suppass2").val();
-                                    if (username == "") {
-                                        return show_error("Username is required");
-                                    }
-                                    if (email == "") {
-                                        return show_error("Email is required");
-                                    }
-                                    if (password2 == "") {
-                                        return show_error("Password is required");
-                                    }
-                                    if (password2 != password) {
-                                        return show_error("Passwords do not match.");
-                                    }
-                                    var user = new Parse.User();
-                                    user.set("username", username);
-                                    user.set("password", password);
-                                    user.set("email", email);  
-                                     
-                                    user.signUp(null, {
-                                        success: function(user) {
-                                            router.go("#/" + username);
-                                        },
-                                        error: function(user, error) {
-                                            show_error(error.message);
-                                        }
-                                    });
-                                }
-                            );
-                            return false;
-                        </script>
                     </div>
                 </div>
                 <div class="span6">
@@ -152,43 +112,22 @@
                                 <button type="submit" class="btn">Login</button>
                             </div>
                         </div>
-                        <script type="dojo/on" data-dojo-event="submit">
-                            require(
-                                ["dojo/router", "dojo/query"], 
-                                function(router, query) {
-                                    query("#sinerror").text("");
-                                    var show_error = function(msg) {
-                                        query("#sinerror").text(msg);
-                                    }
-                                    var username = query("#sinuser").val();
-                                    var password = query("#sinpass").val();
-                                    if (username == "") {
-                                        return show_error("Username is required");
-                                    }
-                                    if (password == "") {
-                                        return show_error("Password is required");
-                                    }
-
-                                    Parse.User.logIn(username, password, {
-                                        success: function(user) {
-                                            router.go("#/" + username);
-                                        },
-                                        error: function(user, error) {
-                                            show_error(error.message);
-                                        }
-                                    });
-                                }
-                            );
-                            return false;                        
-                        </script>
                     </div>
                 </div>
+            </div>
+            <div data-dojo-type="dijit/Dialog" id="tweep_dialog" 
+                title="Whats happening?">                
+                <textarea id="tweep_text"></textarea>
+                <div class="dijitDialogPaneActionBar">
+                    <button id="tweep_button" type="submit" class="btn">
+                        Tweep
+                    </button>
+                </div>            
             </div>
         </div>
         <script data-dojo-config="async: 1, tlmSiblingOfDojo: 0, isDebug: 1"
                 src="dojo/dojo.js" defer></script>
         <script src="app/run.js" defer></script>
-        <script src="bootstrap/bootstrap.min.js"></script>
         <script src="http://www.parsecdn.com/js/parse-1.1.16.min.js"></script>
 		<script>
             Parse.initialize(

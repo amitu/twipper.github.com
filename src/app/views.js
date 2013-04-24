@@ -4,6 +4,20 @@ define(["app/ui"], function(ui){
             ui.show_main_body();
             ui.set_title("Twipper");
             ui.set_main_content("<h1>home</h1>");
+            var TweepFeed = Parse.Object.extend("TweepFeed");
+            new Parse.Query(TweepFeed).equalTo(
+                "user", Parse.User.current()
+            ).descending("order_by").include("tweep").find({
+                success: function(feed) {
+                    for (i = 0; i < feed.length; i++ )
+                    {
+                        console.log(feed[i], feed[i].get("tweep").get("text"));
+                    }
+                },
+                error: function(error) {
+                    console.log("error:", error)
+                }
+            });
         },
         me: function(evt) {
             ui.show_main_body();
@@ -15,10 +29,13 @@ define(["app/ui"], function(ui){
             ui.set_title("@Connect on Twipper");
             ui.set_main_content("<h1>@connect</h1>");
         },
+        tweep: function(evt) {
+            ui.show_tweep_dialog();
+        },
         user: function(evt) {
             if (
                 [
-                    "/logout", "/me", "/", "/connect"
+                    "/logout", "/me", "/", "/connect", "/tweep"
                 ].indexOf(evt.newPath) != -1
             )  return;
             ui.show_main_body();

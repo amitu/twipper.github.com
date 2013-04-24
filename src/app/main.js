@@ -1,7 +1,7 @@
 define(
     [
         "require", "dojo/parser", "dojo/hash", "dojo/router", "app/views",
-        "app/ui", "dijit/form/Form", "dojo/on"
+        "app/ui", "dijit/form/Form", "dojo/on", "dijit/Dialog"
     ], 
     function(require, parser, hash, router, views, ui) {
 
@@ -9,12 +9,14 @@ define(
         router.register("/logout", views.logout);
         router.register("/me", views.me);
         router.register("/connect", views.connect);
+        router.register("/tweep", views.tweep);
         router.register("/:user", views.user);
     
         require(["dojo/domReady!"], function(){    
             parser.parse();
             router.startup();
-            
+            ui.init();
+
             if (Parse.User.current())
                 ui.show_normal_header();
             else
