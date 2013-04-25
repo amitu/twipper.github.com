@@ -43,11 +43,15 @@ define(
                 query("#suppass2").val("");
                 query("#sinuser").val("");
                 query("#sinpass").val("");
+                query("#sinerror").text("");
+                query("#superror").text("");
             }, 
             show_tweep_dialog: function() {
                 query("#tweep_text").val("");
+                query("#tweep_button").text("Tweep");
                 var clicker = on.once(
                     query("#tweep_button"), "click", function(evt) {
+                        query("#tweep_button").text("Wait...");
                         console.log("tweep_button clicked");
                         event.stop(evt);
                         Parse.Cloud.run(
@@ -88,9 +92,7 @@ define(
 
                     show_error("loading...");
                     Parse.User.logIn(username, password, {
-                        success: function(user) {
-                            router.go("#/" + username);
-                        },
+                        success: function(user) { router.go("#/"); },
                         error: function(user, error) {
                             show_error(error.message);
                         }
@@ -126,9 +128,7 @@ define(
                     
                     show_error("loading...");
                     user.signUp(null, {
-                        success: function(user) {
-                            router.go("#/" + username);
-                        },
+                        success: function(user) { router.go("#/"); },
                         error: function(user, error) {
                             show_error(error.message);
                         }

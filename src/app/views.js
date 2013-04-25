@@ -1,9 +1,10 @@
 define(
     [
         "app/ui", "dojo/router", "app/TweepView", "dojo/query", "dojo/dom",
-        "dojox/encoding/digests/MD5", "dojox/encoding/digests/_base"
+        "dojox/encoding/digests/MD5", "dojox/encoding/digests/_base",
+        "app/UserProfile"
     ], 
-    function(ui, router, TweepView, query, dom, md5, digests){
+    function(ui, router, TweepView, query, dom, md5, digests, UserProfile){
         var get_gravatar = function(email) {
             return (
                 "http://www.gravatar.com/avatar/" + 
@@ -56,9 +57,37 @@ define(
                         "/logout", "/me", "/", "/connect", "/tweep"
                     ].indexOf(evt.newPath) != -1
                 )  return;
-                console.log("user");
+
                 ui.show_main_body();
+                ui.set_main_content("");
                 ui.set_title(evt.params.user + " on Twipper");
+
+                var main = ui.get_main();
+
+                var profile = new UserProfile({
+                    "name": evt.params.user,
+                    "following": "yourself"
+                }).placeAt(main);
+
+                profile.startup();
+
+                if (evt.params.user != Parse.User.current().get("username"))
+                {
+                    var FollowerShip = Parse.Object.extend("FollowerShip");
+                    new Parse.Query(FollowerShip).equalTo(
+                        "who", Parse.User.current()
+                    ).matchesQuery(
+                        "whom", new Parse.Query(Parse.User).equalTo(
+                            "username", evt.params.user
+                        )
+                    ).first({
+                        success: function(ship) {
+                            console.log("got ship", ship, !!ship);
+                            profile.set("following", !!ship);
+                        }
+                    })
+                }
+
                 var Tweep = Parse.Object.extend("Tweep");
                 new Parse.Query(Tweep).matchesQuery(
                     "user", new Parse.Query(Parse.User).equalTo(
@@ -66,12 +95,16 @@ define(
                     )
                 ).include("user").find({
                     success: function(tweeps) {
-                        var main = ui.get_main();
                         console.log("got tweeps", tweeps);
-                        ui.set_main_content("<h1>@" + evt.params.user + "</h1>");
                         for (i = 0; i < tweeps.length; i++)
                         {
                             var tweep = tweeps[i];
+                            if (i == 0) 
+                            {
+                                profile.avatarNode.src = get_gravatar(
+                                        tweep.get("user").get("email")
+                                );
+                            }
                             new TweepView({
                                 "tweep": tweep.get("text"),
                                 "name": evt.params.user,
