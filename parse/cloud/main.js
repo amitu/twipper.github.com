@@ -23,7 +23,8 @@ function queue_tweets(who, whom, response)
                 tf.set("tweep", tweeps[i]);
                 tf.set("user", who);
                 tf.set("whose", whom);
-                tf.set("order_by", tweeps[i].get("createdAt"));
+                log("createdAt", tweeps[i].createdAt);
+                tf.set("order_by", tweeps[i].createdAt);
                 tfs.push(tf);
             }
             Parse.Object.saveAll(tfs, {
@@ -144,27 +145,7 @@ Parse.Cloud.define("unfollow", function(request, response){
     }
 });
 
-Parse.Cloud.define("tweepit", function(request, response) {
-    if (request.user && request.params.text)
-    {
-        var Tweep = Parse.Object.extend("Tweep");
-        new Tweep().save({text: request.params.text, user: request.user}, {
-            success: function(o) {
-                response.success("ok");
-            }, 
-            error: function(o, error) {
-                response.error(error.message);
-            }
-        });
-    } 
-    else 
-    {
-        response.error("Not logged in or no tweep text passed");
-    }
-});
-
-Parse.Cloud.afterSave("Tweep", function(request) {
-    var tweep = request.object;
+function post_tweep(tweep, response) {
     var FollowerShip = Parse.Object.extend("FollowerShip");
     var TweepFeed = Parse.Object.extend("TweepFeed");
 
@@ -175,7 +156,7 @@ Parse.Cloud.afterSave("Tweep", function(request) {
     tf.set("tweep", tweep);
     tf.set("user", tweep.get("user"));
     tf.set("whose", tweep.get("user"));
-    tf.set("order_by", tweep.get("createdAt"));
+    tf.set("order_by", tweep.createdAt);
     tfs.push(tf);
 
     new Parse.Query(FollowerShip).equalTo("whom", tweep.get("user")).find({
@@ -188,17 +169,40 @@ Parse.Cloud.afterSave("Tweep", function(request) {
                 tf.set("tweep", tweep);
                 tf.set("user", ships[i].get("who"));
                 tf.set("whose", tweep.get("user"));
-                tf.set("order_by", tweep.get("createdAt"));
+                tf.set("order_by", tweep.createdAt);
                 tfs.push(tf);
             }
             Parse.Object.saveAll(tfs, {
+                success: function() {
+                    response.success("ok");
+                }, 
                 error: function(error) {
-                    throw "Error on saveAll: " + error.message;
+                    response.error("Error on saveAll: " + error.message);
                 }
             });
         }, 
         error: function (error) {
-            throw "Error on find: " + error.message;
+            response.error("Error on find: " + error.message);
         }
     });
+};
+
+Parse.Cloud.define("tweepit", function(request, response) {
+    if (request.user && request.params.text)
+    {
+        var Tweep = Parse.Object.extend("Tweep");
+        new Tweep().save({text: request.params.text, user: request.user}, {
+            success: function(o) {
+                post_tweep(o, response);
+            }, 
+            error: function(o, error) {
+                response.error(error.message);
+            }
+        });
+    } 
+    else 
+    {
+        response.error("Not logged in or no tweep text passed");
+    }
 });
+

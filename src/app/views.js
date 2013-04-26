@@ -19,7 +19,7 @@ define(
                 ui.set_title("Twipper");
                 ui.set_main_content("<h1>home</h1>");
                 var TweepFeed = Parse.Object.extend("TweepFeed");
-                new Parse.Query(TweepFeed).equalTo(
+                new Parse.Query(TweepFeed).descending("created_at").equalTo(
                     "user", Parse.User.current()
                 ).include("tweep").include("whose").find({
                     success: function(feed) {
@@ -93,7 +93,7 @@ define(
                     "user", new Parse.Query(Parse.User).equalTo(
                         "username", evt.params.user
                     )
-                ).include("user").find({
+                ).include("user").descending("order_by").find({
                     success: function(tweeps) {
                         console.log("got tweeps", tweeps);
                         for (i = 0; i < tweeps.length; i++)
