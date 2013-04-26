@@ -1,3 +1,47 @@
+function log() 
+{
+    var msg = "";
+ 
+    for (var i = 0; i < arguments.length; i++) 
+    {
+       msg += arguments[i] + " ";
+    }
+  
+  console.log(msg);
+}
+
+function queue_tweets(who, whom, response)
+{
+    var Tweep = Parse.Object.extend("Tweep");
+    var TweepFeed = Parse.Object.extend("TweepFeed");
+    new Parse.Query(Tweep).equalTo("user", whom).find({
+        success: function(tweeps) {
+            var tfs = [];
+            for (i = 0; i < tweeps.length; i++)
+            {
+                var tf = new TweepFeed();
+                tf.set("tweep", tweeps[i]);
+                tf.set("user", who);
+                tf.set("whose", whom);
+                tf.set("order_by", tweeps[i].get("createdAt"));
+                tfs.push(tf);
+            }
+            Parse.Object.saveAll(tfs, {
+                success: function(){
+                    log("saved", tweeps.length, "items");
+                    response.success("ok");
+                }, 
+                error: function(error) {
+                    response.error(error);
+                }
+            });
+        }, 
+        error: function(error) {
+            response.error(error.message);
+        }
+    })
+}
+
 Parse.Cloud.define("follow", function(request, response){
     if (request.user && request.params.whom) 
     {
@@ -16,8 +60,10 @@ Parse.Cloud.define("follow", function(request, response){
                             ship = new FollowerShip();
                             ship.save({who: request.user, whom: whom}, {
                                 success: function(o) {
-                                    response.success("ok");
-                                    // TODO: create tweep feeds
+                                    queue_tweets(
+                                        request.user, whom,
+                                        response
+                                    )
                                 }, 
                                 error: function(o, error) {
                                     response.error(error.message);
@@ -38,7 +84,27 @@ Parse.Cloud.define("follow", function(request, response){
     }
 });
 
+function destroy_tweets(who, whom, response)
+{
+    log("destroy_tweets", who.get("username"), whom);
+    var TweepFeed = Parse.Object.extend("TweepFeed");
+    new Parse.Query(TweepFeed).equalTo("user", who).equalTo(
+        "whose", whom
+    ).find().then(
+        function(feed) {
+            log("deleted item count", feed.length);
+            for (i = 0; i < feed.length; i++ ) feed[i].destroy();
+            response.success("ok");
+        }, 
+        function(error) {
+            log("error on destroy_tweets", error.message);
+            response.error(error.message);
+        }
+    );
+}
+
 Parse.Cloud.define("unfollow", function(request, response){
+    log("unfollow request");
     if (request.user && request.params.whom) 
     {
         var User = Parse.Object.extend("User");
@@ -50,16 +116,18 @@ Parse.Cloud.define("unfollow", function(request, response){
                 ).equalTo("whom", whom).first({
                     success: function(ship) {
                         if (ship) {
-                            ship.destroy({
-                                success: function(o) {
-                                    response.success("ok");
-                                    // TODO: destroy TweepFeeds
-                                },
-                                error: function(o, error) {
+                            log("found ship, deleting it");
+                            ship.destroy().then(
+                                function(o) {
+                                    destroy_tweets(
+                                        request.user, whom, 
+                                        response
+                                    );
+                                    log("something deleted");
+                                }, function(o, error) {
                                     response.error(error.message);
                                 }
-                            })
-                            response.success("ok");
+                            );
                         }
                         else
                             response.success("ok");
@@ -100,15 +168,15 @@ Parse.Cloud.afterSave("Tweep", function(request) {
     var FollowerShip = Parse.Object.extend("FollowerShip");
     var TweepFeed = Parse.Object.extend("TweepFeed");
 
-    // TODO: use saveAll instead of individual saves
-    // Parse.Object.saveAll(list, {success: ..., error: ...});
+    var tfs = [];
 
     // everybody follows themselves!
-    new TweepFeed().save({
-        tweep: tweep, user: tweep.get("user"),
-        whose: tweep.get("user"), // used to delete on unfollow
-        order_by: tweep.get("createdAt")
-    });
+    var tf = new TweepFeed();
+    tf.set("tweep", tweep);
+    tf.set("user", tweep.get("user"));
+    tf.set("whose", tweep.get("user"));
+    tf.set("order_by", tweep.get("createdAt"));
+    tfs.push(tf);
 
     new Parse.Query(FollowerShip).equalTo("whom", tweep.get("user")).find({
         success: function(ships) {
@@ -116,12 +184,18 @@ Parse.Cloud.afterSave("Tweep", function(request) {
             // to get all followers, do more queries with offset set to 100 etc
             for(i = 0; i < ships.length; i++)
             {
-                new TweepFeed().save({
-                    tweep: tweep, user: ships[i].get("who"), 
-                    whose: tweep.get("user"), // used to delete on unfollow
-                    order_by: tweep.get("createdAt")
-                });
+                tf = new TweepFeed();
+                tf.set("tweep", tweep);
+                tf.set("user", ships[i].get("who"));
+                tf.set("whose", tweep.get("user"));
+                tf.set("order_by", tweep.get("createdAt"));
+                tfs.push(tf);
             }
+            Parse.Object.saveAll(tfs, {
+                error: function(error) {
+                    throw "Error on saveAll: " + error.message;
+                }
+            });
         }, 
         error: function (error) {
             throw "Error on find: " + error.message;
